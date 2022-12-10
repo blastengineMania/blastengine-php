@@ -1,0 +1,23 @@
+{
+    "name": "blastengine/blastengine",
+    "description": "This library sends email quickly using blastengine API.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Blastengine\\": "src"
+        }
+    },
+    "authors": [
+        {
+            "name": "Atsushi Nakatsugawa",
+            "email": "atsushi@moongift.jp"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9"
+    }
+}

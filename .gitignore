@@ -1,0 +1,7 @@
+vendor/
+composer.phar
+vendor/
+tests/config.json
+.DS_Store
+.phpunit.result.cache
+composer.lock
