@@ -5,3 +5,4 @@ tests/config.json
 .DS_Store
 .phpunit.result.cache
 composer.lock
+tests/logo.png
