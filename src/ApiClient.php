@@ -13,28 +13,55 @@ class ApiClient
 	public string $_end_point = "https://app.engn.jp/api/v1";
 
 	public function get(
-		$request_path
+		string $request_path,
+		bool $binary = false
 	): array
 	{
-		return $this->_send("GET", $request_path);
+		return $this->_send("GET", $request_path, null, true, [], $binary);
 	}
 
 	public function post(
-		$request_path,
-		$body = null,
-		$json = true,
-		$attachments = [],
+		string $request_path,
+		array $body = null,
+		bool $json = true,
+		array $attachments = [],
 	): array
 	{
 		return $this->_send("POST", $request_path, $body, $json, $attachments);
 	}
 
+	public function put(
+		string $request_path,
+		array $body = null,
+		bool $json = true,
+		array $attachments = [],
+	): array
+	{
+		return $this->_send("PUT", $request_path, $body, $json, $attachments);
+	}
+
+	public function patch(
+		string $request_path,
+		array $body = null,
+		bool $json = true,
+		array $attachments = [],
+	): array
+	{
+		return $this->_send("PATCH", $request_path, $body, $json, $attachments);
+	}
+
+	public function delete(string $request_path): array
+	{
+		return $this->_send("DELETE", $request_path);
+	}
+
 	private function _send(
-		$method,
-		$request_path,
-		$body = null,
-		$json = true,
-		$attachments = [],
+		string $method,
+		string $request_path,
+		?array $body = null,
+		bool $json = true,
+		array $attachments = [],
+		bool $binary = false
 	): array
 	{
 		$url = $this->_end_point . $request_path;
@@ -72,11 +99,22 @@ class ApiClient
 			$options["multipart"] = $params;
 		}
 		$client = new Client();
+		if ($binary) {
+			$options["sink"] = tempnam(sys_get_temp_dir(), 'be');
+		}
 		$res = $client->request($method, $url, $options);
-		return $this->handle_result($res);
+		if ($binary) {
+			$zip = new \ZipArchive();
+			$zip->open($options["sink"]);
+			$content = $zip->getFromIndex(0);
+			return [
+				"raw" => $content
+			];
+		}
+		return $this->handle_result($res, $binary);
 	}
 
-	function handle_result(Response $res): array
+	function handle_result(Response $res, $binary): array
 	{
 		if ($res->getStatusCode() <> 200 && $res->getStatusCode() <> 201) {
 			$message = json_decode($res->getBody()->getContents(), true);
@@ -87,6 +125,13 @@ class ApiClient
 			}
 			throw new Exception(implode("\n", $error_messages));
 		}
-		return json_decode($res->getBody()->getContents(), true);
+		$content = $res->getBody()->getContents();
+		if ($binary) {
+			return [
+				"raw" => $content
+			];
+		} else {
+			return json_decode($content, true);
+		}
 	}
 }
