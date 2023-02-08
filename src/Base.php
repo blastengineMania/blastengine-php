@@ -74,7 +74,7 @@ class Base
 		return $this;
 	}
 
-	function attachment(string $path): Transaction
+	function attachment(string $path): Base
 	{
 		array_push($this->_attachments, $path);
 		return $this;
