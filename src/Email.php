@@ -31,10 +31,12 @@ class Email extends Base
 	}
 
 	// アドレスと挿入コードを設定するメソッド
-	function address(string $email, array $insert_code = []): Email
+	function address(string $email, array|null $insert_code = null): Email
 	{
 		$this->email = $email;
-		$this->insert_code = $insert_code;
+		if (!is_null($insert_code)) {
+			$this->insert_code = $insert_code;
+		}
 		return $this;
 	}
 
