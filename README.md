@@ -59,6 +59,20 @@ You can access other information below.
 
 https://blastengine.jp/documents/#operation/delivery-detail-get
 
+# Test
+
+## All test
+
+```
+vendor/bin/phpunit
+```
+
+## Specific test
+
+```
+vendor/bin/phpunit --filter testEmail
+```
+
 # License
 
 MIT.

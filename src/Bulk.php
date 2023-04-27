@@ -13,7 +13,7 @@ class Bulk extends Base
 	function to(string $email, array $insert_code = []): Bulk
 	{
 		if (count($this->_to) == 50) {
-			throw new \Exception("Bulk email can only have 50 recipients");
+			throw new \Exception("Bulk email can't have more than 50 recipients");
 		}
 		$params = [
 			"email" => $email,
