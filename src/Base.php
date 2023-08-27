@@ -5,12 +5,12 @@ namespace Blastengine;
 class Base
 {
 	protected ApiClient $_apiClient;
-	protected ?int $_delivery_id;
-	protected ?string $_from_name;
-	protected ?string $_from_email;
-	protected ?string $_subject;
-	protected ?string $_text_part;
-	protected ?string $_html_part;
+	protected ?int $_delivery_id = null;
+	protected string $_from_name = "";
+	protected ?string $_from_email = null;
+	protected ?string $_subject = null;
+	protected ?string $_text_part = null;
+	protected ?string $_html_part = null;
 	protected string $_encode = "UTF-8";
 	protected array $_attachments = [];
 
@@ -31,6 +31,56 @@ class Base
 	function __construct()
 	{
 		$this->_apiClient = new ApiClient();
+	}
+
+	function sets($params = []): Base
+	{
+		foreach ($params as $key => $value) {
+			$this->set($key, $value);
+		}
+		return $this;
+	}
+
+	function set(string $key, string | int | array | null $value): Base
+	{
+		switch ($key) {
+			case "delivery_id":
+				$this->delivery_id($value);
+				break;
+			case "updated_time":
+				if ($value != null) {
+					$this->updated_time = strtotime($value);
+				}
+				break;
+			case "created_time":
+				if ($value != null) {
+					$this->created_time = strtotime($value);
+				}
+				break;
+			case "delivery_type":
+				$this->delivery_type = $value;
+				break;
+			case "subject":
+				$this->subject($value);
+				break;
+			case "from":
+				$this->from($value["email"], $value["name"]);
+				break;
+			case "reservation_time":
+				if ($value != null) {
+					$this->reservation_time = strtotime($value);
+				}
+				break;
+			case "delivery_time":
+				if ($value != null) {
+					$this->delivery_time = strtotime($value);
+				}
+				break;
+			case "status":
+				$this->status = $value;
+				break;
+		};
+		return $this;
 	}
 
 	function delivery_id(int $delivery_id = null): ?int

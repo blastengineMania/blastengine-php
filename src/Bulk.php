@@ -12,9 +12,6 @@ class Bulk extends Base
 
 	function to(string $email, array $insert_code = []): Bulk
 	{
-		if (count($this->_to) == 50) {
-			throw new \Exception("Bulk email can't have more than 50 recipients");
-		}
 		$params = [
 			"email" => $email,
 			"insert_code" => []
@@ -41,10 +38,57 @@ class Bulk extends Base
 
 	public function update(): bool
 	{
-		$path = sprintf("/deliveries/bulk/update/%s", $this->_delivery_id);
-		$this->_apiClient->put($path, $this->_json());
-		$this->_to = []; // Reset
+		if (count($this->_to) > 50) {
+			$csv_file = $this->_get_csv();
+			$job = $this->import($csv_file, true);
+			while ($job->finished() == false) {
+				sleep(1);
+			}
+			// reset
+			$this->_to = [];
+		} else {
+			$path = sprintf("/deliveries/bulk/update/%s", $this->_delivery_id);
+			$this->_apiClient->put($path, $this->_json());
+			$this->_to = []; // Reset
+		}
 		return true;
+	}
+
+	public function _get_csv(): string
+	{
+		$csv_file = tempnam(sys_get_temp_dir(), "blastengine");
+		rename($csv_file, "$csv_file.csv");
+		$fp = fopen("$csv_file.csv", "w");
+		// make header
+		$headers = ["email"];
+		foreach ($this->_to as $to) {
+			foreach ($to["insert_code"] as $insert_code) {
+				if (!in_array($insert_code["key"], $headers)) {
+					array_push($headers, $insert_code["key"]);
+				}
+			}
+		}
+		fputcsv($fp, $headers);
+		foreach ($this->_to as $to) {
+			$row = [$to["email"]];
+			$insert_code = [];
+			foreach ($to["insert_code"] as $code) {
+				$insert_code[$code["key"]] = $code["value"];
+			}
+			foreach ($headers as $header) {
+				if ($header == "email") {
+					continue;
+				}
+				if (array_key_exists($header, $insert_code)) {
+					array_push($row, $insert_code[$header]);
+				} else {	
+					array_push($row, "");
+				}
+			}
+			fputcsv($fp, $row);
+		}
+		fclose($fp);
+		return "$csv_file.csv";
 	}
 	
 	public function send(\DateTime $deliveryDate = null): bool
