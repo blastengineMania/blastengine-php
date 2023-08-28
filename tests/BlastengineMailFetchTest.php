@@ -13,13 +13,23 @@ class BlastengineMailFetchTest extends TestCase
 		Blastengine\Client::initialize($this->config["userId"], $this->config["apiKey"]);
 	}
 
-  public function testMailTransaction(): void
+  public function testMailFind(): void
 	{
 		$params = array(
 			"status" => ['EDIT'],
 			"size" => 10,
 		);
 		$data = Blastengine\Mail::find($params);
+		$this->assertIsString($data[0]->status);
+	}
+
+  public function testLogFind(): void
+	{
+		$params = array(
+			"delivery_type" => ['SMTP'],
+			"size" => 10,
+		);
+		$data = Blastengine\Log::find($params);
 		var_dump($data);
 	}
 }
