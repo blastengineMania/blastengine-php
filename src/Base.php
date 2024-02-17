@@ -13,6 +13,7 @@ class Base
 	protected ?string $_html_part = null;
 	protected string $_encode = "UTF-8";
 	protected array $_attachments = [];
+	protected ?array $_unsubscribe = null;
 
 	public ?string $delivery_type;
 	public ?string $status;
@@ -49,12 +50,12 @@ class Base
 				break;
 			case "updated_time":
 				if ($value != null) {
-					$this->updated_time = strtotime($value);
+					$this->updated_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
 				}
 				break;
 			case "created_time":
 				if ($value != null) {
-					$this->created_time = strtotime($value);
+					$this->created_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
 				}
 				break;
 			case "delivery_type":
@@ -68,12 +69,12 @@ class Base
 				break;
 			case "reservation_time":
 				if ($value != null) {
-					$this->reservation_time = strtotime($value);
+					$this->reservation_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
 				}
 				break;
 			case "delivery_time":
 				if ($value != null) {
-					$this->delivery_time = strtotime($value);
+					$this->delivery_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
 				}
 				break;
 			case "status":
@@ -121,6 +122,20 @@ class Base
 	function encode(string $encode): Base
 	{
 		$this->_encode = $encode;
+		return $this;
+	}
+
+	function unsubscribe(array $list_unsubscribe): Base
+	{
+		if (count($list_unsubscribe) > 0) {
+			$this->_unsubscribe = [];
+		}
+		if (isset($list_unsubscribe['url'])) {
+			$this->_unsubscribe['url'] = $list_unsubscribe['url'];
+		}
+		if (isset($list_unsubscribe['email'])) {
+			$this->_unsubscribe['email'] = $list_unsubscribe['email'];
+		}
 		return $this;
 	}
 

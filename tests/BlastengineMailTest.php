@@ -52,4 +52,49 @@ class BlastengineMailTest extends TestCase
 		$mail->send();
 		$this->assertIsInt($mail->delivery_id());
 	}
+
+  public function testMailUnsubscribeUrl(): void
+	{
+		$mail = new Blastengine\Mail();
+		$mail
+			->from($this->config["from"]["email"])
+			->subject('Test unsuscribe subject url')
+			->text_part('This is test email __name1__')
+			->unsubscribe(array("url" => "http://example.com/unsubscribe/__hash__"));
+		for ($i = 0; $i < 2; $i++) {
+			$mail->to("atsushi+$i@moongift.co.jp", array("name1" => "Test $i", "hash" => "hash_$i"));
+		}
+		$mail->send();
+		$this->assertIsInt($mail->delivery_id());
+	}
+
+  public function testMailUnsubscribeEmail(): void
+	{
+		$mail = new Blastengine\Mail();
+		$mail
+			->from($this->config["from"]["email"])
+			->subject('Test unsuscribe subject email')
+			->text_part('This is test email __name1__')
+			->unsubscribe(array("email" => "unsubscribe+__hash__@moongift.co.jp"));
+		for ($i = 0; $i < 2; $i++) {
+			$mail->to("atsushi+$i@moongift.co.jp", array("name1" => "Test $i", "hash" => "hash_$i"));
+		}
+		$mail->send();
+		$this->assertIsInt($mail->delivery_id());
+	}
+
+  public function testMailUnsubscribeBoth(): void
+	{
+		$mail = new Blastengine\Mail();
+		$mail
+			->from($this->config["from"]["email"])
+			->subject('Test unsuscribe subject both')
+			->text_part('This is test email __name1__')
+			->unsubscribe(array("email" => "unsubscribe+__hash__@moongift.co.jp", "url" => "http://example.com/unsubscribe/__hash__"));
+		for ($i = 0; $i < 2; $i++) {
+			$mail->to("atsushi+$i@moongift.co.jp", array("name1" => "Test $i", "hash" => "hash_$i"));
+		}
+		$mail->send();
+		$this->assertIsInt($mail->delivery_id());
+	}
 }

@@ -28,6 +28,22 @@ class Mail extends Base
 		return $ary;
 	}
 
+	static function all(array $params = []): array {
+		$api_client = new ApiClient();
+		$query_string = http_build_query($params);
+		$query_string = preg_replace('/%5B[0-9]+%5D/', '%5B%5D', $query_string);
+		$path = "/deliveries/all?$query_string";
+		$data = $api_client->get($path);
+		$ary = [];
+
+		foreach ($data["data"] as $options) {
+			$mail = $options['delivery_type'] == 'TRANSACTION' ? new Transaction() : new Bulk();
+			$mail->sets($options);
+			array_push($ary, $mail);
+		}
+		return $ary;
+	}
+
 	function to(string $email, array $insert_code = []): Mail
 	{
 		$params = [
@@ -84,6 +100,9 @@ class Mail extends Base
 		if ($this->_html_part) {
 			$transaction->html_part($this->_html_part);
 		}
+		if ($this->_unsubscribe) {
+			$transaction->unsubscribe($this->_unsubscribe);
+		}
 		foreach ($this->_to[0]["insert_code"] as $insert_code) {
 			$transaction->insert_code($insert_code["key"], $insert_code["value"]);
 		}
@@ -107,6 +126,9 @@ class Mail extends Base
 			->encode($this->_encode);
 		if ($this->_html_part) {
 			$bulk->html_part($this->_html_part);
+		}
+		if ($this->_unsubscribe) {
+			$bulk->unsubscribe($this->_unsubscribe);
 		}
 		$bulk->save();
 		foreach ($this->_to as $to) {

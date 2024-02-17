@@ -76,6 +76,15 @@ class Transaction extends Base
 		if (isset($this->_html_part)) {
 			$params["html_part"] = $this->_html_part;
 		}
+		if (isset($this->_unsubscribe)) {
+			$params["list_unsubscribe"] = [];
+			if (isset($this->_unsubscribe["url"])) {
+				$params["list_unsubscribe"]["url"] = $this->_unsubscribe["url"];
+			}
+			if (isset($this->_unsubscribe["email"])) {
+				$params["list_unsubscribe"]["mailto"] = "mailto:" . $this->_unsubscribe["email"];
+			}
+		}
 		return $params;
 	}
 }

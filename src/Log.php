@@ -46,7 +46,7 @@ class Log extends Base
 			break;
 		case "open_time":
 			if ($value != null) {
-				$this->open_time = strtotime($value);
+				$this->open_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
 			}
 			break;
 		default:
