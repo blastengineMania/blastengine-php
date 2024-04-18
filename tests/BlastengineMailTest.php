@@ -53,6 +53,26 @@ class BlastengineMailTest extends TestCase
 		$this->assertIsInt($mail->delivery_id());
 	}
 
+  public function testMailBulkCancel(): void
+	{
+		$mail = new Blastengine\Mail();
+		$mail
+			->from($this->config["from"]["email"])
+			->subject('Test subject')
+			->text_part('This is test email __name1__');
+		$mail->to("be@moongift.co.jp", array("name1" => "Test"));
+		// 30 sec later
+		$delivery_date = new DateTime();
+		$delivery_date->add(new DateInterval('PT30S'));
+		$mail->send($delivery_date);
+		$this->assertIsInt($mail->delivery_id());
+		$mail->get();
+		$this->assertTrue($mail->status == "RESERVE");
+		$mail->cancel();
+		$mail->get();
+		$this->assertTrue($mail->status == "EDIT");
+	}
+
   public function testMailUnsubscribeUrl(): void
 	{
 		$mail = new Blastengine\Mail();

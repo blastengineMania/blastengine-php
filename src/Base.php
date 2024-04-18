@@ -144,6 +144,13 @@ class Base
 		array_push($this->_attachments, $path);
 		return $this;
 	}
+	
+	public function cancel(): bool
+	{
+		$path = sprintf("/deliveries/%s/cancel", $this->_delivery_id);
+		$res = $this->_apiClient->patch($path);
+		return true;
+	}
 
 	function get(): bool
 	{

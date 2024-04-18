@@ -101,13 +101,6 @@ class Bulk extends Base
 		return true;
 	}
 
-	public function cancel(): bool
-	{
-		$path = sprintf("/deliveries/%s/cancel", $this->_delivery_id);
-		$res = $this->_apiClient->patch($path);
-		return true;
-	}
-
 	public function import(string $file_path, bool $ignore_errors = false): Job
 	{
 		$path = sprintf("/deliveries/%s/emails/import", $this->_delivery_id);
