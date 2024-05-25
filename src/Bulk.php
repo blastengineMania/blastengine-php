@@ -4,12 +4,22 @@ namespace Blastengine;
 
 class Bulk extends Base
 {
+	/**
+	 * @var array{ email: string, insert_code: array{key: string, value: string}[] }[] = []
+	 */
 	private array $_to = [];
 
+	/**
+	 * return Bulk
+	 */
 	function __construct() {
 		parent::__construct();
 	}
 
+	/**
+	 * @param array<string, string> $insert_code
+	 * @return Bulk
+	 */
 	function to(string $email, array $insert_code = []): Bulk
 	{
 		$params = [
@@ -26,6 +36,9 @@ class Bulk extends Base
 		return $this;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function save(): bool
 	{
 		$path = "/deliveries/bulk/begin";
@@ -36,6 +49,9 @@ class Bulk extends Base
 		return true;
 	}
 
+	/**
+	 * @return bool
+	 */
 	public function update(): bool
 	{
 		if (count($this->_to) > 50) {
@@ -54,11 +70,20 @@ class Bulk extends Base
 		return true;
 	}
 
+	/**
+	 * @return string
+	 */
 	public function _get_csv(): string
 	{
 		$csv_file = tempnam(sys_get_temp_dir(), "blastengine");
+		if (!$csv_file) {
+			throw new \Exception("Failed to create temporary file");
+		}
 		rename($csv_file, "$csv_file.csv");
 		$fp = fopen("$csv_file.csv", "w");
+		if (!$fp) {
+			throw new \Exception("Failed to open temporary file");
+		}
 		// make header
 		$headers = ["email"];
 		foreach ($this->_to as $to) {
@@ -91,6 +116,9 @@ class Bulk extends Base
 		return "$csv_file.csv";
 	}
 	
+	/**
+	 * @return bool
+	 */
 	public function send(\DateTime $deliveryDate = null): bool
 	{
 		$path = is_null($deliveryDate) ? "/deliveries/bulk/commit/%s/immediate" : "/deliveries/bulk/commit/%s";
@@ -101,6 +129,7 @@ class Bulk extends Base
 		return true;
 	}
 
+
 	public function import(string $file_path, bool $ignore_errors = false): Job
 	{
 		$path = sprintf("/deliveries/%s/emails/import", $this->_delivery_id);
@@ -110,8 +139,14 @@ class Bulk extends Base
 		return $job;
 	}
 
+	/**
+	 * @return array{ from: array{ email: string }, subject: string, text_part: string, to: array{ email: string, insert_code: array{ key: string, value: string }[] }[], encode: string, html_part: string, list_unsubscribe: array{ mailto?: string, url?: string } }
+	 */
 	private function _json(): array
 	{
+		/**
+		 * @var array{ from: array{ email: string }, subject: string, text_part: string, to: array{ email: string, insert_code: array{ key: string, value: string }[] }[], encode: string, html_part: string, list_unsubscribe: array{ mailto?: string, url?: string } }
+		 */
 		$params = [
 			"from" => [
 				"email" => $this->_from_email

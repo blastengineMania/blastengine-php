@@ -1,17 +1,31 @@
 <?php
 
 namespace Blastengine;
+use \Exception;
 
 class Mail extends Base
 {
+	/**
+	 * @var array{ email: string, insert_code?: array{ key: string, value: string }[] }[]
+	 */
 	private array $_to = [];
+	/**
+	 * @var string[]
+	 */
 	private array $_cc = [];
+	/**
+	 * @var string[]
+	 */
 	private array $_bcc = [];
 
 	function __construct() {
 		parent::__construct();
 	}
 
+	/**
+	 * @param array{text_part?: string, html_part?: string, subject?: string, from?: string, list_unsubscribe_mailto?: string, list_unsubscribe_url?: string, status?: string[], delivery_type?: string[], delivery_start?: string, delivery_end?: string, size?: int, page?: int, sort?: string} $params
+	 * @return (Transaction|Bulk)[]
+	 */
 	static function find(array $params = []): array {
 		$api_client = new ApiClient();
 		$query_string = http_build_query($params);
@@ -28,6 +42,10 @@ class Mail extends Base
 		return $ary;
 	}
 
+	/**
+	 * @param array{text_part?: string, html_part?: string, subject?: string, from?: string, list_unsubscribe_mailto?: string, list_unsubscribe_url?: string, status?: string[], delivery_type?: string[], delivery_start?: string, delivery_end?: string, size?: int, page?: int, sort?: string} $params
+	 * @return (Transaction|Bulk)[]
+	 */
 	static function all(array $params = []): array {
 		$api_client = new ApiClient();
 		$query_string = http_build_query($params);
@@ -35,7 +53,6 @@ class Mail extends Base
 		$path = "/deliveries/all?$query_string";
 		$data = $api_client->get($path);
 		$ary = [];
-
 		foreach ($data["data"] as $options) {
 			$mail = $options['delivery_type'] == 'TRANSACTION' ? new Transaction() : new Bulk();
 			$mail->sets($options);
@@ -44,6 +61,10 @@ class Mail extends Base
 		return $ary;
 	}
 
+	/**
+	 * @param array<string, string> $insert_code
+	 * @return Mail
+	 */
 	function to(string $email, array $insert_code = []): Mail
 	{
 		$params = [
@@ -88,11 +109,15 @@ class Mail extends Base
 		return $this->send_bulk($delivery_date);
 	}
 
+	/**
+	 * @return bool
+	 */
 	function send_transaction(): bool
 	{
 		$transaction = new Transaction();
+		$to = $this->_to[0];
 		$transaction
-			->to($this->_to[0]["email"])
+			->to($to["email"])
 			->from($this->_from_email, $this->_from_name)
 			->subject($this->_subject)
 			->text_part($this->_text_part)
@@ -103,8 +128,14 @@ class Mail extends Base
 		if ($this->_unsubscribe) {
 			$transaction->unsubscribe($this->_unsubscribe);
 		}
-		foreach ($this->_to[0]["insert_code"] as $insert_code) {
-			$transaction->insert_code($insert_code["key"], $insert_code["value"]);
+		// Check if there are any insert codes
+		if (array_key_exists("insert_code", $to)) {
+			$insert_code = $to["insert_code"];
+			if (is_iterable($insert_code)) {
+				foreach ($insert_code as $code) {
+					$transaction->insert_code($code["key"], $code["value"]);
+				}
+			}
 		}
 		if (count($this->_attachments) > 0) {
 			foreach ($this->_attachments as $attachment) {
@@ -112,10 +143,14 @@ class Mail extends Base
 			}
 		}
 		$transaction->send();
-		$this->delivery_id($transaction->delivery_id());
-		return true;
+		$delivery_id = $transaction->delivery_id();
+		$this->delivery_id($delivery_id);
+		return $delivery_id > 0;
 	}
 
+	/**
+	 * @return bool
+	 */
 	function send_bulk(\DateTime $delivery_date = null): bool
 	{
 		$bulk = new Bulk();
@@ -133,15 +168,18 @@ class Mail extends Base
 		$bulk->save();
 		foreach ($this->_to as $to) {
 			$insert_code = [];
-			foreach ($to["insert_code"] as $code) {
-				$insert_code[$code["key"]] = $code["value"];
+			if (array_key_exists("insert_code", $to) && is_iterable($to["insert_code"])) {
+				foreach ($to["insert_code"] as $code) {
+					$insert_code[$code["key"]] = $code["value"];
+				}
 			}
 			$bulk->to($to["email"], $insert_code);
 		}
 		$bulk->update();
 		$bulk->send($delivery_date);
-		$this->delivery_id($bulk->delivery_id());
-		return true;
+		$delivery_id = $bulk->delivery_id();
+		$this->delivery_id($delivery_id);
+		return $delivery_id > 0;
 	}
 
 }

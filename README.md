@@ -73,6 +73,14 @@ vendor/bin/phpunit
 vendor/bin/phpunit --filter testEmail
 ```
 
+## PHPStan
+
+```
+./vendor/bin/phpstan analyze --error-format friendly
+```
+
+This SDK is PHPStan level 7.
+
 # License
 
 MIT.

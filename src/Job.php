@@ -1,6 +1,7 @@
 <?php
 
 namespace Blastengine;
+use \Exception;
 
 class Job extends Base
 {

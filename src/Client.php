@@ -7,7 +7,7 @@ class Client
 	private static ?string $_api_key = null;
 	private static ?string $_token = null;
 
-	public static function initialize(string $user_id, string $api_key)
+	public static function initialize(string $user_id, string $api_key): void
   {
 		self::$_user_id = $user_id;
 		self::$_api_key = $api_key;

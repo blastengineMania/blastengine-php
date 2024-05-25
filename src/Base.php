@@ -1,6 +1,7 @@
 <?php
 
 namespace Blastengine;
+use \Exception;
 
 class Base
 {
@@ -12,7 +13,13 @@ class Base
 	protected ?string $_text_part = null;
 	protected ?string $_html_part = null;
 	protected string $_encode = "UTF-8";
+	/**
+	 * @var string[]
+	 */
 	protected array $_attachments = [];
+	/**
+	 * @var array{ email: string } | array{ url: string } | array{ email: string, url: string } | array{} | null
+	 */
 	protected ?array $_unsubscribe = null;
 
 	public ?string $delivery_type;
@@ -34,7 +41,8 @@ class Base
 		$this->_apiClient = new ApiClient();
 	}
 
-	function sets($params = []): Base
+	/** @return static */
+	function sets(mixed $params = []): Base
 	{
 		foreach ($params as $key => $value) {
 			$this->set($key, $value);
@@ -42,43 +50,69 @@ class Base
 		return $this;
 	}
 
+	/**
+	 * @param string | int | array{email: string, name:string} | null $value
+	 * @return static
+	 */
 	function set(string $key, string | int | array | null $value): Base
 	{
 		switch ($key) {
 			case "delivery_id":
-				$this->delivery_id($value);
+				if ($value != null && is_int($value)) {
+					$this->delivery_id($value);
+				}
 				break;
 			case "updated_time":
-				if ($value != null) {
-					$this->updated_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
+				if ($value != null && is_string($value)) {
+					$date = date_create_from_format('Y-m-d\TH:i:sP', $value);
+					if ($date) {
+						$this->updated_time = $date;
+					}
 				}
 				break;
 			case "created_time":
-				if ($value != null) {
-					$this->created_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
+				if ($value != null && is_string($value)) {
+					$date = date_create_from_format('Y-m-d\TH:i:sP', $value);
+					if ($date) {
+						$this->created_time = $date;
+					}
 				}
 				break;
 			case "delivery_type":
-				$this->delivery_type = $value;
+				if ($value != null && is_string($value)) {
+					$this->delivery_type = $value;
+				}
 				break;
 			case "subject":
-				$this->subject($value);
+				if ($value != null && is_string($value)) {
+					$this->subject($value);
+				}
 				break;
 			case "from":
-				$this->from($value["email"], $value["name"]);
+				if ($value != null && is_array($value)) {
+					$this->from($value["email"], $value["name"]);
+				}
 				break;
 			case "reservation_time":
-				if ($value != null) {
-					$this->reservation_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
+				if ($value != null && is_string($value)) {
+					$date = date_create_from_format('Y-m-d\TH:i:sP', $value);
+					if ($date) {
+						$this->reservation_time = $date;
+					}
 				}
 				break;
 			case "delivery_time":
-				if ($value != null) {
-					$this->delivery_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
+				if ($value != null && is_string($value)) {
+					$date = date_create_from_format('Y-m-d\TH:i:sP', $value);
+					if ($date) {
+						$this->delivery_time = $date;
+					}
 				}
 				break;
 			case "status":
-				$this->status = $value;
+				if ($value != null && is_string($value)) {
+					$this->status = $value;
+				}
 				break;
 		};
 		return $this;
@@ -92,6 +126,11 @@ class Base
 		return $this->_delivery_id;
 	}
 
+	/**
+	 * @param string $email
+	 * @param string | null $name
+	 * @return static
+	 */
 	function from(string $email, ?string $name = null): Base
 	{
 		if (!is_null($name)) {
@@ -101,50 +140,77 @@ class Base
 		return $this;
 	}
 
+	/**
+	 * @param string $subject
+	 * @return static
+	 */
 	function subject(string $subject): Base
 	{
 		$this->_subject = $subject;
 		return $this;
 	}
 
+	/**
+	 * @param string $text_part
+	 * @return static
+	 */
 	function text_part(string $text_part): Base
 	{
 		$this->_text_part = $text_part;
 		return $this;
 	}
 
+	/**
+	 * @param string $html_part
+	 * @return static
+	 */
 	function html_part(string $html_part): Base
 	{
 		$this->_html_part = $html_part;
 		return $this;
 	}
 
+	/**
+	 * @param string $encode
+	 * @return static
+	 */
 	function encode(string $encode): Base
 	{
 		$this->_encode = $encode;
 		return $this;
 	}
 
+	/**
+	 * @param array{ email: string } | array{ url: string } |  array{ email: string, url: string } | array{} $list_unsubscribe
+	 * @return static
+	 */
 	function unsubscribe(array $list_unsubscribe): Base
 	{
 		if (count($list_unsubscribe) > 0) {
 			$this->_unsubscribe = [];
 		}
-		if (isset($list_unsubscribe['url'])) {
-			$this->_unsubscribe['url'] = $list_unsubscribe['url'];
+		if (isset($list_unsubscribe["url"])) {
+			$this->_unsubscribe["url"] = $list_unsubscribe["url"];
 		}
-		if (isset($list_unsubscribe['email'])) {
-			$this->_unsubscribe['email'] = $list_unsubscribe['email'];
+		if (isset($list_unsubscribe["email"])) {
+			$this->_unsubscribe["email"] = $list_unsubscribe["email"];
 		}
 		return $this;
 	}
 
+	/**
+	 * @param string $path
+	 * @return static
+	 */
 	function attachment(string $path): Base
 	{
 		array_push($this->_attachments, $path);
 		return $this;
 	}
 	
+	/**
+	 * @return bool
+	 */
 	public function cancel(): bool
 	{
 		$path = sprintf("/deliveries/%s/cancel", $this->_delivery_id);
@@ -152,6 +218,9 @@ class Base
 		return true;
 	}
 
+	/**
+	 * @return bool
+	 */
 	function get(): bool
 	{
 		if (!isset($this->_delivery_id)) {
@@ -183,6 +252,9 @@ class Base
 		return true;
 	}
 
+	/**
+	 * @return bool
+	 */
 	function delete(): bool
 	{
 		$path = sprintf("/deliveries/%s", $this->_delivery_id);

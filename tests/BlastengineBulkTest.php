@@ -4,11 +4,17 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 
 class BlastengineBulkTest extends TestCase
 {
+	/**
+	 * @var array{userId: string, apiKey: string, from: array{email: string, name: string}, to: string, to1: string, to2: string}
+	 */
 	private array $config;
 
 	protected function setUp(): void
 	{
 		$content = file_get_contents(__DIR__ . "/config.json");
+		if (!$content) {
+			$this->markTestSkipped("config.json not found");
+		}
 		$this->config = json_decode($content, true);
 		Blastengine\Client::initialize($this->config["userId"], $this->config["apiKey"]);
 		
@@ -19,7 +25,7 @@ class BlastengineBulkTest extends TestCase
 				$bulk->get();
 				if ($bulk->delivery_type == "BULK" && $bulk->status == "EDIT") {
 					$bulk->delete();
-					echo "delete $id";
+					echo "delete $i";
 					sleep(1);
 				}
 			} catch (\Exception $e) {

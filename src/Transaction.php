@@ -4,33 +4,57 @@ namespace Blastengine;
 
 class Transaction extends Base
 {
+	/**
+	 * @var string
+	 */
 	private ?string $_to;
+	/**
+	 * @var string[]
+	 */
 	private array $_cc = [];
+	/**
+	 * @var string[]
+	 */
 	private array $_bcc = [];
+	/**
+	 * @var array{ key: string, value: string }[]
+	 */
 	private array $_insert_code = [];
 
 	function __construct() {
 		parent::__construct();
 	}
 
+	/**
+	 * @return Transaction
+	 */
 	function to(string $email): Transaction
 	{
 		$this->_to = $email;
 		return $this;
 	}
 
+	/**
+	 * @return Transaction
+	 */
 	function cc(string $email): Transaction
 	{
 		array_push($this->_cc, $email);
 		return $this;
 	}
 
+	/**
+	 * @return Transaction
+	 */
 	function bcc(string $email): Transaction
 	{
 		array_push($this->_bcc, $email);
 		return $this;
 	}
 
+	/**
+	 * @return Transaction
+	 */
 	function insert_code(string $key, string $value): Transaction
 	{
 		array_push($this->_insert_code, [
@@ -40,6 +64,9 @@ class Transaction extends Base
 		return $this;
 	}
 
+	/**
+	 * @return bool
+	 */
 	function send(): bool
 	{
 		$path = "/deliveries/transaction";
@@ -50,16 +77,36 @@ class Transaction extends Base
 		return true;
 	}
 
-	private function _json(): Array
+	/**
+	 * @return array{
+	 *   from: array{
+	 *     email: string, name?: string
+	 *   }, 
+	 *   to: string,
+	 *   subject: string,
+	 *   encode: string,
+	 *   text_part: string,
+	 *   cc?: string[],
+	 *   bcc?: string[],
+	 *   insert_code?: array{
+	 *     key: string, value: string
+	 *   }[],
+	 *   html_part?: string,
+	 *   list_unsubscribe?: array{
+	 *     url?: string, mailto?: string
+	 *   }
+	 * }
+	 */
+	private function _json(): array
 	{
 		$params = [
 			"from" => [
-				"email" => $this->_from_email
+				"email" => (string) $this->_from_email
 			],
-			"to" => $this->_to,
-			"subject" => $this->_subject,
+			"to" => (string) $this->_to,
+			"subject" => (string) $this->_subject,
 			"encode" => $this->_encode,
-			"text_part" => $this->_text_part,
+			"text_part" => (string) $this->_text_part,
 		];
 		if (count($this->_cc) > 0) {
 			$params["cc"] = $this->_cc;

@@ -6,6 +6,9 @@ namespace Blastengine;
 class Email extends Base
 {
 	public string $email;
+	/**
+	 * @var array{ key: string, value: string }[] = []
+	 */
 	private array $insert_code = [];
 	private ?int $_email_id = null;
 	public ?\DateTime $created_time;
@@ -30,17 +33,29 @@ class Email extends Base
 		return $this->_email_id;
 	}
 
-	// アドレスと挿入コードを設定するメソッド
+	/**
+	 * アドレスと挿入コードを設定するメソッド
+	 * @param array<string, string>|null $insert_code
+	 */
 	function address(string $email, array|null $insert_code = null): Email
 	{
 		$this->email = $email;
-		if (!is_null($insert_code)) {
-			$this->insert_code = $insert_code;
+		if (!is_null($insert_code) && is_iterable($insert_code)) {
+			$this->insert_code = [];
+			foreach ($insert_code as $key => $value) {
+				array_push($this->insert_code, [
+					"key" => $key,
+					"value" => $value
+				]);
+			}
 		}
 		return $this;
 	}
 
-	// データを保存するメソッド (新規作成または更新)
+	/**
+	 * データを保存するメソッド (新規作成または更新)
+	 * @return bool
+	 */
 	function save(): bool
 	{
 		if ($this->_email_id) {
@@ -50,7 +65,10 @@ class Email extends Base
 		}
 	}
 
-	// 新規作成メソッド
+	/**
+	 * データを作成するメソッド
+	 * @return bool
+	 */
 	function create(): bool
 	{
 		$delivery_id = $this->delivery_id();
@@ -99,14 +117,20 @@ class Email extends Base
 		return true;
 	}
 	
-	// JSON形式でデータを返すプライベートメソッド
+	/**
+	 * JSON形式でデータを返すプライベートメソッド
+	 * @return array{email: string, insert_code: array{key: string, value: string}[]}
+	 */
 	function _json(): array
 	{
+		/**
+		 * @var array{key: string, value: string}[]
+		 */
 		$insert_code = [];
-		foreach ($this->insert_code as $key => $value) {
+		foreach ($this->insert_code as $code) {
 			array_push($insert_code, [
-				"key" => sprintf("__%s__", $key),
-				"value" => $value
+				"key" => sprintf("__%s__", $code["key"]),
+				"value" => $code["value"]
 			]);
 		}
 		return [

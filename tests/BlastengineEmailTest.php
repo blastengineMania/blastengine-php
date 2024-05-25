@@ -4,11 +4,17 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 
 class BlastengineEmailTest extends TestCase
 {
+	/**
+	 * @var array{userId: string, apiKey: string, from: array{email: string, name: string}, to: string, to1: string, to2: string}
+	 */
 	private array $config;
 
 	protected function setUp(): void
 	{
 		$content = file_get_contents(__DIR__ . "/config.json");
+		if (!$content) {
+			$this->markTestSkipped("config.json not found");
+		}
 		$this->config = json_decode($content, true);
 		Blastengine\Client::initialize($this->config["userId"], $this->config["apiKey"]);
 	}

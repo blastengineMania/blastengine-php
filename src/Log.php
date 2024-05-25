@@ -13,6 +13,10 @@ class Log extends Base
 		parent::__construct();
 	}
 
+	/**
+	 * @param array{anchor?: int, count?: int, email?: string, delivery_type?: string[], delivery_id?: int, status?: string[], response_code?: string[], delivery_start?: string, delivery_end?: string} $params
+	 * @return Log[]
+	 */
 	static function find(array $params = []): array {
 		$api_client = new ApiClient();
 		$query_string = http_build_query($params);
@@ -29,24 +33,35 @@ class Log extends Base
 		return $ary;
 	}
 
-	function set(string $key, string | int | array | null $value): Log
+	function set(string $key, string | array | int | null $value): Log
 	{
 		switch ($key) {
 		case "maillog_id":
-			$this->maillog_id = $value;
+			if ($value != null && is_int($value)) {
+				$this->maillog_id = $value;
+			}
 			break;
 		case "email":
-			$this->email = $value;
+			if ($value != null && is_string($value)) {
+				$this->email = $value;
+			}
 			break;
 		case "last_response_code":
-			$this->last_response_code = $value;
+			if ($value != null && is_string($value)) {
+				$this->last_response_code = $value;
+			}
 			break;
 		case "last_response_message":
-			$this->last_response_message = $value;
+			if ($value != null && is_string($value)) {
+				$this->last_response_message = $value;
+			}
 			break;
 		case "open_time":
-			if ($value != null) {
-				$this->open_time = date_create_from_format('Y-m-d\TH:i:sP', $value);
+			if ($value != null && is_string($value)) {
+				$date = date_create_from_format('Y-m-d\TH:i:sP', $value);
+				if ($date) {
+					$this->open_time = $date;
+				}
 			}
 			break;
 		default:
